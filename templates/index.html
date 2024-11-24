@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentimen Analisis</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-blue-700 min-h-screen text-white">
+  <!-- Header -->
+  <header class="header">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="KAI Access Logo" class="logo">
+  </header>
+
+  <!-- Main Section -->
+  <main class="main">
+    <h1 class="title">Anda Adalah Prioritas Kami</h1>
+    <p class="subtitle">Tentukan Sentiment dari Aplikasi AccessByKAI</p>
+
+    <!-- Input and Button -->
+    <div class="input-container">
+      <input id="inputText" name="inputText" type="text" placeholder="Tuliskan Komentarmu Disini...." class="input-text">
+      <button id="analyzeBtn" class="btn-analyze">Cek</button>
+    </div>
+
+    <!-- Result Section -->
+    <div class="result-container">
+      <p class="result-title">Hasil Analisis Komentarmu :</p>
+      <p id="result" class="result-output">Tunggu hasil...</p>
+    </div>
+  </main>
+
+  <!-- Script -->
+  <script>
+    async function analyzeSentiment() {
+      const inputText = document.getElementById('inputText').value;
+
+      // Periksa jika input kosong
+      if (!inputText.trim()) {
+        document.getElementById('result').innerText = 'Silakan masukkan komentar terlebih dahulu.';
+        return;
+      }
+
+      // Kirim data ke server Flask
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: inputText }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Server tidak merespon dengan benar.');
+        }
+
+        const result = await response.json();
+
+        // Tampilkan hasil
+        if (result.sentiment) {
+          document.getElementById('result').innerText = `Hasil Analisis: ${result.sentiment}`;
+        } else if (result.error) {
+          document.getElementById('result').innerText = `Error: ${result.error}`;
+        } else {
+          document.getElementById('result').innerText = 'Gagal memproses hasil.';
+        }
+      } catch (error) {
+        document.getElementById('result').innerText = 'Terjadi kesalahan, coba lagi nanti.';
+        console.error('Error:', error);
+      }
+    }
+
+    // Tambahkan event listener ke tombol
+    document.getElementById('analyzeBtn').addEventListener('click', analyzeSentiment);
+  </script>
+</body>
+
+</html>
